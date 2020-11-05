@@ -1,2 +1,2 @@
-# maak-evt-str-npm
+# mestor
 My Event Store built for nodejs. (MongoDB)
