@@ -1,0 +1,26 @@
+{
+  "name": "maak-evt-str-npm",
+  "version": "0.0.1",
+  "description": "Event Store built for nodejs.",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "ava"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MagnusAk78/maak-evt-str-npm.git"
+  },
+  "author": "MagnusAk78",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/MagnusAk78/maak-evt-str-npm/issues"
+  },
+  "homepage": "https://github.com/MagnusAk78/maak-evt-str-npm#readme",
+  "dependencies": {
+    "mongodb": "^3.6.2"
+  },
+  "devDependencies": {
+    "ava": "^3.13.0",
+    "uuid": "^8.3.1"
+  }
+}
