@@ -21,20 +21,20 @@ const getTestStreamName = function (number) {
 
 test('createEvtStr throws parse error when wrong connection string is used', async (t) => {
   const wrongConnectionString = 'mongodb://Error127.0.0.1:27017';
-  const evtStr = createEvtStr({ wrongConnectionString, databaseName });
+  const evtStr = createEvtStr(wrongConnectionString, databaseName);
 
   await t.throwsAsync(evtStr, { name: 'MongoParseError' });
 });
 
 test('createEvtStr returns nicely when correct connection string is used', async (t) => {
-  const evtStr = await createEvtStr({ connectionString, databaseName });
+  const evtStr = await createEvtStr(connectionString, databaseName);
 
   t.not(evtStr.reader, null);
   t.not(evtStr.writer, null);
 });
 
 test('Written messages should get a position, global position, and time', async (t) => {
-  const evtStr = await createEvtStr({ connectionString, databaseName });
+  const evtStr = await createEvtStr(connectionString, databaseName);
   const eventMessage = { id: uuid(), type: 'EventHappened', data: {} };
 
   const messageWritten = await evtStr.writer.write(getTestStreamName(1), eventMessage);
@@ -45,7 +45,7 @@ test('Written messages should get a position, global position, and time', async 
 });
 
 test('Reader.read should be able to read 3 written events', async (t) => {
-  const evtStr = await createEvtStr({ connectionString, databaseName });
+  const evtStr = await createEvtStr(connectionString, databaseName);
   const streamName = getTestStreamName(2);
 
   const eventMessage1 = { id: uuid(), type: 'EventHappened', data: { randomId: uuid() } };
@@ -65,7 +65,7 @@ test('Reader.read should be able to read 3 written events', async (t) => {
 });
 
 test('Reader.readLastMessage should return last message written', async (t) => {
-  const evtStr = await createEvtStr({ connectionString, databaseName });
+  const evtStr = await createEvtStr(connectionString, databaseName);
   const streamName = getTestStreamName(3);
 
   const eventMessage = { id: uuid(), type: 'EventHappened', data: { randomId: uuid() } };
@@ -81,7 +81,7 @@ test('loadEntity', async (t) => {
   const createdType = 'Created';
   const closedType = 'Closed';
 
-  const evtStr = await createEvtStr({ connectionString, databaseName });
+  const evtStr = await createEvtStr(connectionString, databaseName);
   const specificId1 = '019234567';
   const streamName1 = 'loadentitystream-' + specificId1;
   const specificId2 = '835729042';
@@ -135,7 +135,7 @@ test('loadEntity', async (t) => {
 });
 
 test('Subscription handler Should let subscriber handle all messages in stream', async (t) => {
-  const evtStr = await createEvtStr({ connectionString, databaseName });
+  const evtStr = await createEvtStr(connectionString, databaseName);
   const streamName = getTestStreamName(4);
   const category = getCategory(streamName);
 
@@ -156,7 +156,7 @@ test('Subscription handler Should let subscriber handle all messages in stream',
   subscription.start();
 
   // Wait a while so the subscription gets time to handle all messages already in queue
-  await new Promise(resolve => setTimeout(resolve, 1000));
+  await new Promise(resolve => setTimeout(resolve, 300));
 
   // Clear the counter again
   handledMessageCount = 0
@@ -167,14 +167,16 @@ test('Subscription handler Should let subscriber handle all messages in stream',
   const messageWritten3 = await evtStr.writer.write(streamName, eventMessage3);
 
   // Wait a while so the subscription gets time to handle the three new messages
-  await new Promise(resolve => setTimeout(resolve, 1000));
+  await new Promise(resolve => setTimeout(resolve, 300));
+
+  subscription.stop();
 
   // Check that we received exactly three messages
   t.deepEqual(handledMessageCount, 3);
 });
 
 test('Write with expected version should work if correct and throw error if wrong', async (t) => {
-  const evtStr = await createEvtStr({ connectionString, databaseName });
+  const evtStr = await createEvtStr(connectionString, databaseName);
   const streamName = getTestStreamName(5);
   const eventMessage1 = { id: uuid(), type: 'EventHappened', data: {} };
   const eventMessage2 = { id: uuid(), type: 'EventHappened', data: {} };

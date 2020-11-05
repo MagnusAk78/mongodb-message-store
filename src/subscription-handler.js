@@ -56,7 +56,7 @@ const createSubscriptionHandler = function (reader, writer) {
       }
     }
 
-    // Internal function, send message to corresponding handlers if any.
+    // Internal function, send message to corresponding handlers.
     function handleMessage(message) {
       const handler = handlers[message.type] || handlers.$any;
 
@@ -67,7 +67,7 @@ const createSubscriptionHandler = function (reader, writer) {
     async function tick() {
       let messagesHandled = 0;
       try {
-        const messages = await reader.read(streamName, currentGlobalPosition + 1, messagesPerTick);
+        const messages = await reader.read(streamName, currentGlobalPosition + 1, maxMessagesPerTick);
         messages.forEach(async (message) => {
           try {
             await handleMessage(message);
