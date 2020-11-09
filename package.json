@@ -1,5 +1,5 @@
 {
-  "name": "maak-evt-str-npm",
+  "name": "mongodb-message-store",
   "version": "1.0.0",
   "description": "A message store implementation of the Eventide project logic for a microservice architecture using MongoDB as storage.",
   "main": "src/index.js",
@@ -8,14 +8,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/MagnusAk78/maak-evt-str-npm.git"
+    "url": "git+https://github.com/MagnusAk78/mongodb-message-store.git"
   },
   "author": "Magnus Åkerman",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/MagnusAk78/maak-evt-str-npm/issues"
+    "url": "https://github.com/MagnusAk78/mongodb-message-store/issues"
   },
-  "homepage": "https://github.com/MagnusAk78/maak-evt-str-npm#readme",
+  "homepage": "https://github.com/MagnusAk78/mongodb-message-store#readme",
   "dependencies": {
     "mongoose": "^5.10.13"
   },

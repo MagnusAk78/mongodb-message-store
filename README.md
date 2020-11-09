@@ -44,7 +44,6 @@ architecture and event sourcing should work.
 ### Install
 
 * [node.js](https://nodejs.org/en)
-* [MongoDB](https://www.mongodb.com/try/download/community) 3.6.2
 
 ## Test
 
