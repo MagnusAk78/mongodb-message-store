@@ -33,13 +33,15 @@ const createWriter = function ( databaseUtils, positionHandler, streamUtils, rea
       }
     }
 
-    const collection = await databaseUtils.getCollectionCreateIfNeeded(streamCategory);
+    //const collection = await databaseUtils.getCollectionCreateIfNeeded(streamCategory);
     const positions = await positionHandler.increamentAndGetPositions(streamCategory);
 
     const document = databaseUtils.messageToDocument(message, streamName, positions);
+
+    const result = await document.save();
     
-    const result = await collection.insertOne(document);
-    return databaseUtils.documentToMessage(result.ops[0]);
+    //const result = await collection.insertOne(document);
+    return databaseUtils.documentToMessage(result);
   };
 
   return {

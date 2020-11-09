@@ -34,9 +34,10 @@ architecture and event sourcing should work.
 
 ## Technologies
 
-* [mongodb](https://www.npmjs.com/package/mongodb) 3.6.2
+* [mongoose](https://www.npmjs.com/package/mongoose) 5.10.13
 * [ava](https://www.npmjs.com/package/ava) 3.13.0
 * [uuid](https://www.npmjs.com/package/uuid) 8.3.1
+* [mongodb-memory-server](https://www.npmjs.com/package/mongodb-memory-server) 6.9.2
 
 ## Setup
 

@@ -15,7 +15,7 @@ function project(events, projection) {
 
 /**
  * The reader object exposes three functions => loadEntity,read, and readLastMessage.
- * 
+ *
  * @param {bject} databaseUtils     database-utils
  * @param {bject} positionHandler   position-handler
  * @param {Object} streamUtils      stream-utils
@@ -46,27 +46,21 @@ const createRead = function (databaseUtils, positionHandler, streamUtils) {
    * @return {Promise<Array>}             Messages
    */
   async function read(streamName, fromGlobalPosition = 0, maxMessages = 1000) {
-    const collectionName = streamUtils.streamCategory(streamName);
-
-    let collection = null;
-
-    try {
-      collection = await databaseUtils.getCollection(collectionName);
-    } catch (err) {
-      // The collection does not exist.
-      return [];
-    }
-
     const query = {
-      globalPosition: { $gte: fromGlobalPosition },
+      streamCategory: streamUtils.streamCategory(streamName),
     };
-
     const streamType = streamUtils.streamType(streamName);
     if (streamType === streamUtils.EntityType) {
-      query.streamName = { $eq: streamName };
+      query.streamName = streamName;
     }
 
-    const documents = await collection.find(query).sort({ position: 1 }).limit(maxMessages).toArray();
+    const documents = await databaseUtils.Message.find(query)
+      .where('globalPosition')
+      .gte(fromGlobalPosition)
+      .sort({ globalPosition: 1 })
+      .limit(maxMessages)
+      .exec();
+
     return documents.map((doc) => databaseUtils.documentToMessage(doc));
   }
 
@@ -75,19 +69,18 @@ const createRead = function (databaseUtils, positionHandler, streamUtils) {
    * @param {String} streamName   Stream name
    */
   async function readLastMessage(streamName) {
-    let collection = null;
-    try {
-      collection = await databaseUtils.getCollection(streamName);
-    } catch (err) {
-      // The collection does not exist.
-      return null;
+    const query = {
+      streamCategory: streamUtils.streamCategory(streamName),
+    };
+    const streamType = streamUtils.streamType(streamName);
+    if (streamType === streamUtils.EntityType) {
+      query.streamName = streamName;
     }
+    const docs = await databaseUtils.Message.find(query)
+      .sort({ globalPosition: -1 })
+      .limit(1).exec();
 
-    const currentPosition = await positionHandler.getCurrentPosition(streamName);
-
-    const doc = await collection.findOne({ position: currentPosition });
-    const message = databaseUtils.documentToMessage(doc);
-    return message;
+    return docs.length === 1 ? databaseUtils.documentToMessage(docs[0]) : null;
   }
 
   return {

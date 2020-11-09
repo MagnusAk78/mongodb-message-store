@@ -1,8 +1,25 @@
+const mongoose = require('mongoose');
+
 /**
  * Database utility functions.
- * @param {Object} database     MongoClient.db
+ * @param {Object} mongooseConnection     Mongoose connection.
  */
-const createDatabaseUtils = function ( database ) {
+const createDatabaseUtils = function ( mongooseConnection, streamUtils ) {
+
+  const messageSchema = new mongoose.Schema({ 
+    _id: String,
+    type: String,
+    data: Object,
+    metadata: Object,
+    position: Number,
+    globalPosition: { type: Number, index: true },
+    time: { type: Date, default: Date.now },
+    streamName: String,
+    streamCategory: String
+  });
+
+  const Message = mongooseConnection.model('Message', messageSchema);
+
   /**
    * Converts a database document into a message (_id => id).
    * @param {Object} document     Database document
@@ -35,61 +52,30 @@ const createDatabaseUtils = function ( database ) {
    * @param {*} positions     Positions object with the messages position and globalPosition.
    */
   const messageToDocument = function (message, streamName, positions) {
-    const document = {
+    const document = new Message({
       _id: message.id,
       type: message.type,
       position: positions.position,
       globalPosition: positions.globalPosition,
-      time: Date.now(),
       streamName,
-    };
+      streamCategory: streamUtils.streamCategory(streamName)
+    });
 
-    if (document.data) {
+    if (message.data) {
       document.data = message.data;
     }
 
-    if (document.metadata) {
+    if (message.metadata) {
       document.metadata = message.metadata;
     }
 
     return document;
   };
 
-  /**
-   * Returns a database collection based on name, throws error if it does not exist.
-   * @param  {String} collectionName    The collection name
-   * @return {Promise}                  The collection
-   */
-  const getCollection = async function (collectionName) {
-    // Promisify the get collection callback.
-    const collectionResultPromise = (name, options) => {
-      return new Promise((resolve, reject) => {
-        database.collection(name, options, (err, collection) => {
-          if (err) return reject(err);
-          resolve(collection);
-        });
-      });
-    };
-
-    // Strict mode throws error when collection doesn't exist.
-    return await collectionResultPromise(collectionName, { strict: true });
-  };
-
-  /**
-   * Returns a database collection based on name, creates it if it does not exist.
-   * @param  {String} collectionName    The collection name
-   * @return {Promise}                  The collection
-   */
-  const getCollectionCreateIfNeeded = async function (collectionName) {
-    // When not using strict mode the collection gets created when it doesn't exist.
-    return await database.collection(collectionName);
-  };
-
   return {
     documentToMessage,
     messageToDocument,
-    getCollection,
-    getCollectionCreateIfNeeded,
+    Message
   };
 };
 

@@ -17,10 +17,11 @@
   },
   "homepage": "https://github.com/MagnusAk78/maak-evt-str-npm#readme",
   "dependencies": {
-    "mongodb": "^3.6.2"
+    "mongoose": "^5.10.13"
   },
   "devDependencies": {
     "ava": "^3.13.0",
+    "mongodb-memory-server": "^6.9.2",
     "uuid": "^8.3.1"
   }
 }

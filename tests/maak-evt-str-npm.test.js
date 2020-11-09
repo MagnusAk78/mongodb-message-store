@@ -1,11 +1,28 @@
 const test = require('ava');
 const uuid = require('uuid/v4');
 
+const {MongoMemoryServer} = require('mongodb-memory-server');
+const mongod = new MongoMemoryServer({
+  binary: {
+    version: '3.6.2'
+  }
+});
+
 const createEvtStr = require('../src/index');
 
-const connectionString = 'mongodb://127.0.0.1:27017';
-const databaseName = 'evt-str-test';
+let evtStr = null;
+
+//const databaseName = 'evt-str-test';
 const fixedUUID = 'd785277c-196b-4361-b689-611d959ed03e';
+
+test.before(async () => {
+  const mongodbMemoryServerUri = await mongod.getUri();
+  evtStr = await createEvtStr(mongodbMemoryServerUri, { autoReconnect: true, reconnectTries: Number.MAX_VALUE, reconnectInterval: 1000 });
+});
+
+test.after.always('cleanup', t => {
+	// Nothing
+});
 
 function getCategory(streamName) {
   if (streamName == null) {
@@ -19,24 +36,13 @@ const getTestStreamName = function (number) {
   return 'test_stream' + number + '-' + fixedUUID;
 };
 
-test('createEvtStr throws parse error when wrong connection string is used', async (t) => {
-  const wrongConnectionString = 'mongodb://Error127.0.0.1:27017';
-  const evtStr = createEvtStr(wrongConnectionString, databaseName);
-
-  await t.throwsAsync(evtStr, { name: 'MongoParseError' });
-});
-
-test('createEvtStr returns nicely when correct connection string is used', async (t) => {
-  const evtStr = await createEvtStr(connectionString, databaseName);
-
+test.serial('createEvtStr returns nicely when correct connection string is used', async (t) => {
   t.not(evtStr.reader, null);
   t.not(evtStr.writer, null);
 });
 
-test('Written messages should get a position, global position, and time', async (t) => {
-  const evtStr = await createEvtStr(connectionString, databaseName);
+test.serial('Written messages should get a position, global position, and time', async (t) => {
   const eventMessage = { id: uuid(), type: 'EventHappened', data: {} };
-
   const messageWritten = await evtStr.writer.write(getTestStreamName(1), eventMessage);
 
   t.assert(messageWritten.position, 'No position');
@@ -44,8 +50,7 @@ test('Written messages should get a position, global position, and time', async 
   t.assert(messageWritten.time, 'No time');
 });
 
-test('Reader.read should be able to read 3 written events', async (t) => {
-  const evtStr = await createEvtStr(connectionString, databaseName);
+test.serial('Reader.read should be able to read 3 written events', async (t) => {
   const streamName = getTestStreamName(2);
 
   const eventMessage1 = { id: uuid(), type: 'EventHappened', data: { randomId: uuid() } };
@@ -64,8 +69,7 @@ test('Reader.read should be able to read 3 written events', async (t) => {
   t.deepEqual(messageWritten3, messages[2]);
 });
 
-test('Reader.readLastMessage should return last message written', async (t) => {
-  const evtStr = await createEvtStr(connectionString, databaseName);
+test.serial('Reader.readLastMessage should return last message written', async (t) => {
   const streamName = getTestStreamName(3);
 
   const eventMessage = { id: uuid(), type: 'EventHappened', data: { randomId: uuid() } };
@@ -77,11 +81,9 @@ test('Reader.readLastMessage should return last message written', async (t) => {
   t.deepEqual(messageWritten, lastMessage);
 });
 
-test('loadEntity', async (t) => {
+test.serial('loadEntity', async (t) => {
   const createdType = 'Created';
   const closedType = 'Closed';
-
-  const evtStr = await createEvtStr(connectionString, databaseName);
   const specificId1 = '019234567';
   const streamName1 = 'loadentitystream-' + specificId1;
   const specificId2 = '835729042';
@@ -134,8 +136,7 @@ test('loadEntity', async (t) => {
   t.false(entity2.closed);
 });
 
-test('Subscription handler Should let subscriber handle all messages in stream', async (t) => {
-  const evtStr = await createEvtStr(connectionString, databaseName);
+test.serial('Subscription handler Should let subscriber handle all messages in stream', async (t) => {
   const streamName = getTestStreamName(4);
   const category = getCategory(streamName);
 
@@ -175,12 +176,11 @@ test('Subscription handler Should let subscriber handle all messages in stream',
   t.deepEqual(handledMessageCount, 3);
 });
 
-test('Write with expected version should work if correct and throw error if wrong', async (t) => {
-  const evtStr = await createEvtStr(connectionString, databaseName);
+test.serial('Write with expected version should work if correct and throw error if wrong', async (t) => {
   const streamName = getTestStreamName(5);
-  const eventMessage1 = { id: uuid(), type: 'EventHappened', data: {} };
-  const eventMessage2 = { id: uuid(), type: 'EventHappened', data: {} };
-  const eventMessage3 = { id: uuid(), type: 'EventHappened', data: {} };
+  const eventMessage1 = { id: uuid(), type: 'EventHappened', data: { fruit: 'banana' } };
+  const eventMessage2 = { id: uuid(), type: 'EventHappened', data: { fruit: 'orange' } };
+  const eventMessage3 = { id: uuid(), type: 'EventHappened', data: { fruit: 'pinaple' } };
 
   const messageWritten1 = await evtStr.writer.write(streamName, eventMessage1);
   const lastMessage1 = await evtStr.reader.readLastMessage(getCategory(streamName));
