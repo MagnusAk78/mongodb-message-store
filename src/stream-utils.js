@@ -2,12 +2,11 @@
  * Utility functions for stream names.
  */
 const createStreamUtils = function () {
-
   const EntityType = 'EntityType';
   const CategoryType = 'CategoryType';
 
   function streamType(streamName) {
-    if(streamName.indexOf('-') === -1) {
+    if (streamName.indexOf('-') === -1) {
       return CategoryType;
     } else {
       return EntityType;
@@ -15,8 +14,8 @@ const createStreamUtils = function () {
   }
 
   function streamCategory(streamName) {
-    if(streamType(streamName) === EntityType) {
-      return streamName.split('-')[0]
+    if (streamType(streamName) === EntityType) {
+      return streamName.split('-')[0];
     } else {
       return streamName;
     }
@@ -26,9 +25,8 @@ const createStreamUtils = function () {
     EntityType,
     CategoryType,
     streamType,
-    streamCategory
+    streamCategory,
   };
-  
 };
 
 module.exports = createStreamUtils;

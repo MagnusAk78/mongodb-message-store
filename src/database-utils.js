@@ -4,9 +4,8 @@ const mongoose = require('mongoose');
  * Database utility functions.
  * @param {Object} mongooseConnection     Mongoose connection.
  */
-const createDatabaseUtils = function ( mongooseConnection, streamUtils ) {
-
-  const messageSchema = new mongoose.Schema({ 
+const createDatabaseUtils = function (mongooseConnection, streamUtils) {
+  const messageSchema = new mongoose.Schema({
     _id: String,
     type: String,
     data: Object,
@@ -15,7 +14,7 @@ const createDatabaseUtils = function ( mongooseConnection, streamUtils ) {
     globalPosition: { type: Number, index: true },
     time: { type: Date, default: Date.now },
     streamName: String,
-    streamCategory: String
+    streamCategory: String,
   });
 
   const Message = mongooseConnection.model('Message', messageSchema);
@@ -58,7 +57,7 @@ const createDatabaseUtils = function ( mongooseConnection, streamUtils ) {
       position: positions.position,
       globalPosition: positions.globalPosition,
       streamName,
-      streamCategory: streamUtils.streamCategory(streamName)
+      streamCategory: streamUtils.streamCategory(streamName),
     });
 
     if (message.data) {
@@ -75,7 +74,7 @@ const createDatabaseUtils = function ( mongooseConnection, streamUtils ) {
   return {
     documentToMessage,
     messageToDocument,
-    Message
+    Message,
   };
 };
 

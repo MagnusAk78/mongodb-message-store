@@ -1,49 +1,43 @@
 const test = require('ava');
 const uuid = require('uuid/v4');
 
-const {MongoMemoryServer} = require('mongodb-memory-server');
+const { MongoMemoryServer } = require('mongodb-memory-server');
 const mongod = new MongoMemoryServer({
   binary: {
-    version: '3.6.2'
-  }
+    version: '3.6.2',
+  },
 });
 
-const createEvtStr = require('../src/index');
+const createMessageStore = require('../src/index');
 
-let evtStr = null;
-
-//const databaseName = 'evt-str-test';
 const fixedUUID = 'd785277c-196b-4361-b689-611d959ed03e';
+function getTestStreamName(number) {
+  return 'test_stream' + number + '-' + fixedUUID;
+};
+
+let mestor = null;
 
 test.before(async () => {
   const mongodbMemoryServerUri = await mongod.getUri();
-  evtStr = await createEvtStr(mongodbMemoryServerUri, { autoReconnect: true, reconnectTries: Number.MAX_VALUE, reconnectInterval: 1000 });
-});
-
-test.after.always('cleanup', t => {
-	// Nothing
+  mestor = await createMessageStore(mongodbMemoryServerUri);
 });
 
 function getCategory(streamName) {
   if (streamName == null) {
-    return ''
+    return '';
   }
 
-  return streamName.split('-')[0]
+  return streamName.split('-')[0];
 }
 
-const getTestStreamName = function (number) {
-  return 'test_stream' + number + '-' + fixedUUID;
-};
-
-test.serial('createEvtStr returns nicely when correct connection string is used', async (t) => {
-  t.not(evtStr.reader, null);
-  t.not(evtStr.writer, null);
+test.serial('createMessageStore returns nicely when correct connection string is used', async (t) => {
+  t.not(mestor.reader, null);
+  t.not(mestor.writer, null);
 });
 
 test.serial('Written messages should get a position, global position, and time', async (t) => {
   const eventMessage = { id: uuid(), type: 'EventHappened', data: {} };
-  const messageWritten = await evtStr.writer.write(getTestStreamName(1), eventMessage);
+  const messageWritten = await mestor.writer.write(getTestStreamName(1), eventMessage);
 
   t.assert(messageWritten.position, 'No position');
   t.assert(messageWritten.globalPosition, 'No globalPosition');
@@ -57,11 +51,11 @@ test.serial('Reader.read should be able to read 3 written events', async (t) => 
   const eventMessage2 = { id: uuid(), type: 'EventHappened', data: { randomId: uuid() } };
   const eventMessage3 = { id: uuid(), type: 'EventHappened', data: { randomId: uuid() } };
 
-  const messageWritten1 = await evtStr.writer.write(streamName, eventMessage1);
-  const messageWritten2 = await evtStr.writer.write(streamName, eventMessage2);
-  const messageWritten3 = await evtStr.writer.write(streamName, eventMessage3);
+  const messageWritten1 = await mestor.writer.write(streamName, eventMessage1);
+  const messageWritten2 = await mestor.writer.write(streamName, eventMessage2);
+  const messageWritten3 = await mestor.writer.write(streamName, eventMessage3);
 
-  const messages = await evtStr.reader.read(getCategory(streamName), messageWritten1.globalPosition, 3);
+  const messages = await mestor.reader.read(getCategory(streamName), messageWritten1.globalPosition, 3);
 
   t.is(messages.length, 3);
   t.deepEqual(messageWritten1, messages[0]);
@@ -74,9 +68,9 @@ test.serial('Reader.readLastMessage should return last message written', async (
 
   const eventMessage = { id: uuid(), type: 'EventHappened', data: { randomId: uuid() } };
 
-  const messageWritten = await evtStr.writer.write(streamName, eventMessage);
+  const messageWritten = await mestor.writer.write(streamName, eventMessage);
 
-  const lastMessage = await evtStr.reader.readLastMessage(getCategory(streamName));
+  const lastMessage = await mestor.reader.readLastMessage(getCategory(streamName));
 
   t.deepEqual(messageWritten, lastMessage);
 });
@@ -120,14 +114,14 @@ test.serial('loadEntity', async (t) => {
   };
 
   // Create and close stream1
-  await evtStr.writer.write(streamName1, createdEventMessage11);
-  await evtStr.writer.write(streamName1, closedEventMessage12);
+  await mestor.writer.write(streamName1, createdEventMessage11);
+  await mestor.writer.write(streamName1, closedEventMessage12);
 
   // Only Create stream2
-  await evtStr.writer.write(streamName2, createdEventMessage21);
+  await mestor.writer.write(streamName2, createdEventMessage21);
 
-  const entity1 = await evtStr.reader.loadEntity(streamName1, isClosedProjection);
-  const entity2 = await evtStr.reader.loadEntity(streamName2, isClosedProjection);
+  const entity1 = await mestor.reader.loadEntity(streamName1, isClosedProjection);
+  const entity2 = await mestor.reader.loadEntity(streamName2, isClosedProjection);
 
   t.deepEqual(entity1.id, specificId1);
   t.true(entity1.closed);
@@ -146,29 +140,29 @@ test.serial('Subscription handler Should let subscriber handle all messages in s
 
   const subscriberId = 'subscriberId';
 
-  let handledMessageCount = 0
+  let handledMessageCount = 0;
   const handlers = {
     EventHappened: async () => {
       handledMessageCount++;
-    }
-  }
+    },
+  };
 
-  const subscription = evtStr.subscriptionHandler.createSubscription(category, handlers, subscriberId);
+  const subscription = mestor.subscriptionHandler.createSubscription(category, handlers, subscriberId);
   subscription.start();
 
   // Wait a while so the subscription gets time to handle all messages already in queue
-  await new Promise(resolve => setTimeout(resolve, 300));
+  await new Promise((resolve) => setTimeout(resolve, 300));
 
   // Clear the counter again
-  handledMessageCount = 0
+  handledMessageCount = 0;
 
   //Write three new messages
-  const messageWritten1 = await evtStr.writer.write(streamName, eventMessage1);
-  const messageWritten2 = await evtStr.writer.write(streamName, eventMessage2);
-  const messageWritten3 = await evtStr.writer.write(streamName, eventMessage3);
+  const messageWritten1 = await mestor.writer.write(streamName, eventMessage1);
+  const messageWritten2 = await mestor.writer.write(streamName, eventMessage2);
+  const messageWritten3 = await mestor.writer.write(streamName, eventMessage3);
 
   // Wait a while so the subscription gets time to handle the three new messages
-  await new Promise(resolve => setTimeout(resolve, 300));
+  await new Promise((resolve) => setTimeout(resolve, 300));
 
   subscription.stop();
 
@@ -182,14 +176,14 @@ test.serial('Write with expected version should work if correct and throw error 
   const eventMessage2 = { id: uuid(), type: 'EventHappened', data: { fruit: 'orange' } };
   const eventMessage3 = { id: uuid(), type: 'EventHappened', data: { fruit: 'pinaple' } };
 
-  const messageWritten1 = await evtStr.writer.write(streamName, eventMessage1);
-  const lastMessage1 = await evtStr.reader.readLastMessage(getCategory(streamName));
-  const messageWritten2 = await evtStr.writer.write(streamName, eventMessage2, lastMessage1.position);
-  const lastMessage2 = await evtStr.reader.readLastMessage(getCategory(streamName));
-  
+  const messageWritten1 = await mestor.writer.write(streamName, eventMessage1);
+  const lastMessage1 = await mestor.reader.readLastMessage(getCategory(streamName));
+  const messageWritten2 = await mestor.writer.write(streamName, eventMessage2, lastMessage1.position);
+  const lastMessage2 = await mestor.reader.readLastMessage(getCategory(streamName));
+
   t.deepEqual(lastMessage2, messageWritten2);
 
-  const messageWritten3 = evtStr.writer.write(streamName, eventMessage3, lastMessage2.position - 1);
+  const messageWritten3 = mestor.writer.write(streamName, eventMessage3, lastMessage2.position - 1);
 
   const error = await t.throwsAsync(messageWritten3);
   t.assert(error.message.startsWith('Stream version conflict.'));

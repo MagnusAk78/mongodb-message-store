@@ -5,8 +5,7 @@
  * @param {*} streamUtils       stream-utils
  * @param {*} reader            reader
  */
-const createWriter = function ( databaseUtils, positionHandler, streamUtils, reader ) {
-
+const createWriter = function (databaseUtils, positionHandler, streamUtils, reader) {
   /**
    * Writes a message to a stream.
    * @param  {String} streamName      Stream name
@@ -24,25 +23,20 @@ const createWriter = function ( databaseUtils, positionHandler, streamUtils, rea
 
     const streamCategory = streamUtils.streamCategory(streamName);
 
-    if(expectedVersion) {
+    if (expectedVersion) {
       const lastMessage = await reader.readLastMessage(streamCategory);
-      if((lastMessage && expectedVersion !== lastMessage.position) ||
-        (!lastMessage && expectedVersion !== 0)) {
-        throw new Error('Stream version conflict. expectedVersion=' + expectedVersion +
-        ', current version=' + lastMessage.position);
+      if ((lastMessage && expectedVersion !== lastMessage.position) || (!lastMessage && expectedVersion !== 0)) {
+        throw new Error(
+          'Stream version conflict. expectedVersion=' + expectedVersion + ', current version=' + lastMessage.position
+        );
       }
     }
 
-    //const collection = await databaseUtils.getCollectionCreateIfNeeded(streamCategory);
     const positions = await positionHandler.increamentAndGetPositions(streamCategory);
-
     const document = databaseUtils.messageToDocument(message, streamName, positions);
-
     const result = await document.save();
-    
-    //const result = await collection.insertOne(document);
-    return databaseUtils.documentToMessage(result);
-  };
+    return result ? databaseUtils.documentToMessage(result) : null;
+  }
 
   return {
     write,

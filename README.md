@@ -13,9 +13,9 @@
 
 ## General info
 
-A message store implementation of the Eventide project logic for a microservice architecture. This is basically my own
-implementation of the message-store module found in the book 'Practical Microservices' by Ethan Garofolo. It has been
-changed so it runs on a Mongo DB database instead of the Message-DB (based on PostgreSQL). I have also implemented
+A message store implementation of the Eventide project logic for a microservice architecture for MongoDB. It is based on the
+message store module found in the book 'Practical Microservices' by Ethan Garofolo. This implementation uses MongoDB
+database as storage instad of the [message-db](https://github.com/message-db/message-db). I have also implemented
 every part of the code anew and according to my own preferences, for better learning and also to avoid any
 copyrights issues. I did this project solely for the purpose of increasing my own understanding of how the microservice
 architecture and event sourcing should work.
@@ -24,20 +24,20 @@ architecture and event sourcing should work.
 
 * Write messages
 * Read messages
-* Load entity with projection
+* Load entities with projection
 * Subscribe to streams
 
 ### Sources
 
-* Logic based on code by [Ethan Garofolo](https://github.com/juanpaco) accompanying the book [Practival Microservices](https://pragprog.com/titles/egmicro/practical-microservices/)
-* The message and streams naming logics tries to follow the logic of the [Eventide](http://docs.eventide-project.org/user-guide/stream-names/) project
+* Logic based on code by [Ethan Garofolo](https://github.com/juanpaco) accompanying the book [Practical Microservices](https://pragprog.com/titles/egmicro/practical-microservices/).
+* The message and streams naming logics follow the logic of the [Eventide](http://docs.eventide-project.org/user-guide/stream-names/) project.
 
 ## Technologies
 
-* [mongoose](https://www.npmjs.com/package/mongoose) 5.10.13
-* [ava](https://www.npmjs.com/package/ava) 3.13.0
+* [mongoose](https://www.npmjs.com/package/mongoose) 5.10.13 => MongoDB object modeling tool.
+* [ava](https://www.npmjs.com/package/ava) 3.13.0 => Test framework
 * [uuid](https://www.npmjs.com/package/uuid) 8.3.1
-* [mongodb-memory-server](https://www.npmjs.com/package/mongodb-memory-server) 6.9.2
+* [mongodb-memory-server](https://www.npmjs.com/package/mongodb-memory-server) 6.9.2 => In memory MongoDB implementation (used for testing).
 
 ## Setup
 

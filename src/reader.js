@@ -17,10 +17,20 @@ function project(events, projection) {
  * The reader object exposes three functions => loadEntity,read, and readLastMessage.
  *
  * @param {bject} databaseUtils     database-utils
- * @param {bject} positionHandler   position-handler
  * @param {Object} streamUtils      stream-utils
  */
-const createRead = function (databaseUtils, positionHandler, streamUtils) {
+const createRead = function (databaseUtils, streamUtils) {
+  // Internal function that creates a search query based on stream name.
+  function createQuery(streamName) {
+    const query = {
+      streamCategory: streamUtils.streamCategory(streamName),
+    };
+    if (streamUtils.streamType(streamName) === streamUtils.EntityType) {
+      query.streamName = streamName;
+    }
+    return query;
+  }
+
   /**
    * @description Loads a state of an entity from the store by reading all messages for
    * given (entity) stream and put them through given projection (reduce).
@@ -46,15 +56,7 @@ const createRead = function (databaseUtils, positionHandler, streamUtils) {
    * @return {Promise<Array>}             Messages
    */
   async function read(streamName, fromGlobalPosition = 0, maxMessages = 1000) {
-    const query = {
-      streamCategory: streamUtils.streamCategory(streamName),
-    };
-    const streamType = streamUtils.streamType(streamName);
-    if (streamType === streamUtils.EntityType) {
-      query.streamName = streamName;
-    }
-
-    const documents = await databaseUtils.Message.find(query)
+    const documents = await databaseUtils.Message.find(createQuery(streamName))
       .where('globalPosition')
       .gte(fromGlobalPosition)
       .sort({ globalPosition: 1 })
@@ -69,16 +71,7 @@ const createRead = function (databaseUtils, positionHandler, streamUtils) {
    * @param {String} streamName   Stream name
    */
   async function readLastMessage(streamName) {
-    const query = {
-      streamCategory: streamUtils.streamCategory(streamName),
-    };
-    const streamType = streamUtils.streamType(streamName);
-    if (streamType === streamUtils.EntityType) {
-      query.streamName = streamName;
-    }
-    const docs = await databaseUtils.Message.find(query)
-      .sort({ globalPosition: -1 })
-      .limit(1).exec();
+    const docs = await databaseUtils.Message.find(createQuery(streamName)).sort({ globalPosition: -1 }).limit(1).exec();
 
     return docs.length === 1 ? databaseUtils.documentToMessage(docs[0]) : null;
   }
