@@ -13,7 +13,7 @@ const createSubscriptionHandler = require('./subscription-handler');
  * @param {String} connectionUrl      The database connection url including database name. (e.g. mongodb://127.0.0.1:27017/database)
  */
 const build = async function (connectionUrl) {
-  const mongooseConnection = await mongoose.connect(connectionUrl, {
+  const mongooseConnection = await mongoose.createConnection(connectionUrl, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
     useFindAndModify: false,

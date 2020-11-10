@@ -1,6 +1,6 @@
 {
   "name": "mongodb-message-store",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A message store implementation of the Eventide project logic for a microservice architecture using MongoDB as storage.",
   "main": "src/index.js",
   "scripts": {
