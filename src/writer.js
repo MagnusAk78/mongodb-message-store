@@ -13,7 +13,7 @@ const createWriter = function (databaseUtils, positionHandler, streamUtils, read
    * @param  {Number} expectedVersion The expected version og the stream, a.k.a current highest position
    * @return {Promise<Object>}        The message written
    */
-  async function write(streamName, message, expectedVersion = undefined) {
+  async function write(streamName, message, expectedVersion) {
     if (!message.id) {
       throw new Error('Messages must have an id');
     }

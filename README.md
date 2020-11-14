@@ -35,8 +35,8 @@ architecture and event sourcing should work.
 ## Technologies
 
 * [mongoose](https://www.npmjs.com/package/mongoose) 5.10.13 => MongoDB object modeling tool.
-* [ava](https://www.npmjs.com/package/ava) 3.13.0 => Test framework
 * [uuid](https://www.npmjs.com/package/uuid) 8.3.1
+* [ava](https://www.npmjs.com/package/ava) 3.13.0 => Test framework
 * [mongodb-memory-server](https://www.npmjs.com/package/mongodb-memory-server) 6.9.2 => In memory MongoDB implementation (used for testing).
 
 ## Setup

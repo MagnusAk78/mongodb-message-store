@@ -1,6 +1,6 @@
 {
   "name": "mongodb-message-store",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A message store implementation of the Eventide project logic for a microservice architecture using MongoDB as storage.",
   "main": "src/index.js",
   "scripts": {
@@ -17,12 +17,12 @@
   },
   "homepage": "https://github.com/MagnusAk78/mongodb-message-store#readme",
   "dependencies": {
-    "mongoose": "^5.10.13"
+    "mongoose": "^5.10.13",
+    "uuid": "^8.3.1"
   },
   "devDependencies": {
     "ava": "^3.13.0",
-    "mongodb-memory-server": "^6.9.2",
-    "uuid": "^8.3.1"
+    "mongodb-memory-server": "^6.9.2"
   },
   "directories": {
     "test": "tests"

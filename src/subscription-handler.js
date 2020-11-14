@@ -1,3 +1,5 @@
+const uuid = require('uuid/v4');
+
 /**
  * The subscription handler exposes the createSubscription function.
  * @param {*} reader    reader
@@ -13,6 +15,7 @@ const createSubscriptionHandler = function (reader, writer) {
   // Internal function, writes subsribers position to database.
   function writePosition(subscriberStreamName, position) {
     const positionMessage = {
+      id: uuid(),
       type: 'ReadPosition',
       data: { position },
     };
@@ -38,7 +41,7 @@ const createSubscriptionHandler = function (reader, writer) {
     positionUpdateInterval = 100,
     pollIntervalMs = 100
   ) {
-    const subscriberStreamName = 'subscriberPosition-' + subscriberId;
+    const subscriberStreamName = ['subscriberPosition-', subscriberId].join().toString();
 
     let currentGlobalPosition = 0;
     let messagesSinceLastPositionWrite = 0;
@@ -52,7 +55,7 @@ const createSubscriptionHandler = function (reader, writer) {
       if (messagesSinceLastPositionWrite === positionUpdateInterval) {
         messagesSinceLastPositionWrite = 0;
 
-        writePosition(currentPosition);
+        writePosition(subscriberStreamName, currentPosition);
       }
     }
 

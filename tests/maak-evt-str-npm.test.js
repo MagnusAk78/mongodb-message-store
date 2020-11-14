@@ -134,11 +134,15 @@ test.serial('Subscription handler Should let subscriber handle all messages in s
   const streamName = getTestStreamName(4);
   const category = getCategory(streamName);
 
-  const eventMessage1 = { id: uuid(), type: 'EventHappened', data: { randomId: uuid() } };
-  const eventMessage2 = { id: uuid(), type: 'EventHappened', data: { randomId: uuid() } };
-  const eventMessage3 = { id: uuid(), type: 'EventHappened', data: { randomId: uuid() } };
+  const nrOfMessages = 500;
+  const messageArray = [];
 
-  const subscriberId = 'subscriberId';
+  for (i = 0; i < nrOfMessages; i++) {
+    let tempMessage = { id: uuid(), type: 'EventHappened', data: { randomId: uuid() } };  
+    messageArray.push(tempMessage);
+  }
+
+  const subscriberId = uuid();
 
   let handledMessageCount = 0;
   const handlers = {
@@ -150,24 +154,21 @@ test.serial('Subscription handler Should let subscriber handle all messages in s
   const subscription = mestor.subscriptionHandler.createSubscription(category, handlers, subscriberId);
   subscription.start();
 
-  // Wait a while so the subscription gets time to handle all messages already in queue
-  await new Promise((resolve) => setTimeout(resolve, 300));
+  const messageWrittenArray = [];
 
-  // Clear the counter again
-  handledMessageCount = 0;
-
-  //Write three new messages
-  const messageWritten1 = await mestor.writer.write(streamName, eventMessage1);
-  const messageWritten2 = await mestor.writer.write(streamName, eventMessage2);
-  const messageWritten3 = await mestor.writer.write(streamName, eventMessage3);
+  //Write all messages
+  for (i = 0; i < nrOfMessages; i++) {
+    let tempMessageWritten = await mestor.writer.write(streamName, messageArray[i]);
+    messageWrittenArray.push(tempMessageWritten);
+  }
 
   // Wait a while so the subscription gets time to handle the three new messages
-  await new Promise((resolve) => setTimeout(resolve, 300));
+  await new Promise((resolve) => setTimeout(resolve, 1000));
 
   subscription.stop();
 
   // Check that we received exactly three messages
-  t.deepEqual(handledMessageCount, 3);
+  t.deepEqual(handledMessageCount, nrOfMessages);
 });
 
 test.serial('Write with expected version should work if correct and throw error if wrong', async (t) => {
